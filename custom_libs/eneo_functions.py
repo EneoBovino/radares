@@ -47,12 +47,12 @@ def calcula_variaveis(data_frame, frequencia):
     to_ret = _pd.DataFrame()
     for fx in data_frame["faixa"].unique():
         df = data_frame[data_frame["faixa"] == fx][["data_hora", "milissegundo", "velocidade_entrada", "velocidade_saida"]].copy()
-        df["data_hora_milli"] = df["data_hora"] + pd.to_timedelta(df["milissegundo"], unit='ms')
+        df["data_hora_milli"] = df["data_hora"] + _pd.to_timedelta(df["milissegundo"], unit='ms')
         df["time_diff_s"] = df["data_hora_milli"].diff().dt.total_seconds()
-        df["velocidade_m/s"] = np.round(df["velocidade_entrada"]/3.6, 2)
+        df["velocidade_m/s"] = _np.round(df["velocidade_entrada"]/3.6, 2)
         df["espacamento_metros"] = df["velocidade_m/s"] * df["time_diff_s"]
         df.set_index("data_hora_milli", inplace=True, drop=True)
-        df_g = df.resample("10T", label="right", closed="left").agg(
+        df_g = df.resample(frequencia, label="right", closed="left").agg(
             {
                 "data_hora":'count',
                 "espacamento_metros":'mean',
