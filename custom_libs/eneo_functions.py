@@ -44,8 +44,10 @@ def calcula_variaveis(data_frame, frequencia):
     Calcula as variáveis de fluxo, velocidade média e densidade.
     Retorna um data frame.
     '''
+    print("Total de faixas para processamento:", data_frame["faixa"].unique().size)
     to_ret = _pd.DataFrame()
     for fx in data_frame["faixa"].unique():
+        print("Processando faixa:", fx)
         df = data_frame[data_frame["faixa"] == fx][["faixa","data_hora", "milissegundo", "velocidade_entrada", "velocidade_saida"]].copy()
         df["data_hora_milli"] = df["data_hora"] + _pd.to_timedelta(df["milissegundo"], unit='ms')
         df["time_diff_s"] = df["data_hora_milli"].diff().dt.total_seconds()
@@ -65,5 +67,7 @@ def calcula_variaveis(data_frame, frequencia):
             to_ret = df_g
         else:
             to_ret = _pd.concat([to_ret, df_g])
-    
+    to_ret["densidade"] = (1 / to_ret["espacamento_metros"]) * 1000
+    to_ret = to_ret[["faixa", "data_hora", "velocidade_entrada", "velocidade_saida", "densidade", "espacamento_metros"]]
+    to_ret.columns = ["faixa", "fluxo", "vel_media_ent", "vel_media_saida", "densidade", "esp_medio_metros"]
     return to_ret
