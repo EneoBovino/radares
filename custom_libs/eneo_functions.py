@@ -1,5 +1,5 @@
-import pandas as pd
-import numpy as np
+import pandas as _pd
+import numpy as _np
 
 def get_version():
     '''
@@ -12,7 +12,7 @@ def carrega_trafego(nome_do_arquivo):
     Realiza a carga dos dados do arquivo CSV especificado com os tipos de dados corretos.
     '''
     
-    df = pd.read_csv(
+    df = _pd.read_csv(
         "../input/"+nome_do_arquivo,
         delimiter=",",
         dtype = {
@@ -30,4 +30,39 @@ def carrega_trafego(nome_do_arquivo):
     )
     
     return df
+
+def media_harmonica(serie_de_dados):
+    if len(serie_de_dados) == 0: 
+        return None # Caso não existam dados no período a função retornará None
+    else:
+        serie_de_dados = serie_de_dados[serie_de_dados > 0]
+        serie_de_dados = serie_de_dados[serie_de_dados < 120]
+        return np.round(len(serie_de_dados)/(sum(1/serie_de_dados)),2)
     
+def calcula_variaveis(data_frame, frequencia):
+    '''
+    Calcula as variáveis de fluxo, velocidade média e densidade.
+    Retorna um data frame.
+    '''
+    to_ret = _pd.DataFrame()
+    for fx in data_frame["faixa"].unique():
+        df = data_frame[data_frame["faixa"] == fx][["data_hora", "milissegundo", "velocidade_entrada", "velocidade_saida"]].copy()
+        df["data_hora_milli"] = df["data_hora"] + pd.to_timedelta(df["milissegundo"], unit='ms')
+        df["time_diff_s"] = df["data_hora_milli"].diff().dt.total_seconds()
+        df["velocidade_m/s"] = np.round(df["velocidade_entrada"]/3.6, 2)
+        df["espacamento_metros"] = df["velocidade_m/s"] * df["time_diff_s"]
+        df.set_index("data_hora_milli", inplace=True, drop=True)
+        df_g = df.resample("10T", label="right", closed="left").agg(
+            {
+                "data_hora":'count',
+                "espacamento_metros":'mean',
+                "velocidade_entrada":media_harmonica,
+                "velocidade_saida":media_harmonica
+            }
+        )
+        if to_ret.size == 0:
+            to_ret = df_g
+        else:
+            to_ret = _pd.concat([to_ret, df_g])
+    
+    return to_ret
