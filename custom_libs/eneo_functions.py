@@ -37,7 +37,7 @@ def media_harmonica(serie_de_dados):
     else:
         serie_de_dados = serie_de_dados[serie_de_dados > 0]
         serie_de_dados = serie_de_dados[serie_de_dados < 120]
-        return np.round(len(serie_de_dados)/(sum(1/serie_de_dados)),2)
+        return _np.round(len(serie_de_dados)/(sum(1/serie_de_dados)),2)
     
 def calcula_variaveis(data_frame, frequencia):
     '''
